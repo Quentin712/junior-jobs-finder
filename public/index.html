@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Junior Jobs Finder</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Junior Jobs Finder</h1>
+    <p>Internships and entry level jobs, pulled live from Adzuna.</p>
+  </header>
+
+  <main>
+    <form id="search-form">
+      <label>Keyword
+        <input type="text" id="keyword" maxlength="50" placeholder="python, design, finance">
+      </label>
+      <label>Country
+        <select id="country">
+          <option value="gb">United Kingdom</option>
+          <option value="us">United States</option>
+          <option value="ca">Canada</option>
+          <option value="de">Germany</option>
+          <option value="fr">France</option>
+        </select>
+      </label>
+      <label>Level
+        <select id="level">
+          <option value="internship">Internship</option>
+          <option value="graduate">Graduate</option>
+          <option value="junior">Junior</option>
+          <option value="entry level">Entry level</option>
+        </select>
+      </label>
+      <button type="submit">Search</button>
+    </form>
+
+    <section id="tools" hidden>
+      <label>Filter results
+        <input type="text" id="filter-text" placeholder="title or company">
+      </label>
+      <label>Contract
+        <select id="contract-filter">
+          <option value="all">All</option>
+          <option value="full_time">Full time</option>
+          <option value="part_time">Part time</option>
+          <option value="unknown">Not stated</option>
+        </select>
+      </label>
+      <label>Sort by
+        <select id="sort">
+          <option value="newest">Newest</option>
+          <option value="title">Title A to Z</option>
+          <option value="company">Company A to Z</option>
+          <option value="salary">Highest salary</option>
+        </select>
+      </label>
+      <label class="check">
+        <input type="checkbox" id="salary-only"> Only jobs with salary
+      </label>
+    </section>
+
+    <p id="message" role="status"></p>
+    <p id="summary"></p>
+    <ul id="results"></ul>
+
+    <div id="pager" hidden>
+      <button type="button" id="prev">Previous</button>
+      <span id="page-label"></span>
+      <button type="button" id="next">Next</button>
+    </div>
+  </main>
+
+  <footer>
+    <p>Job data from <a href="https://www.adzuna.com" target="_blank" rel="noopener">Adzuna</a>.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
