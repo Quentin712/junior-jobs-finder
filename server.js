@@ -9,6 +9,7 @@ const SERVER_NAME = process.env.SERVER_NAME || 'local';
 
 const COUNTRIES = ['gb', 'us', 'ca', 'de', 'fr'];
 const LEVELS = ['internship', 'graduate', 'junior', 'entry level'];
+const SENIOR_WORDS = /\b(senior|sr|lead|principal|manager|director|head of)\b/i;
 const CACHE_MINUTES = 10;
 const cache = new Map();
 
@@ -95,7 +96,8 @@ app.get('/api/jobs', async (req, res) => {
     if (!Array.isArray(body.results)) {
       return res.status(502).json({ error: 'The job service sent an unexpected reply.' });
     }
-    const data = { count: body.count, jobs: body.results.map(cleanJob), cached: false };
+    const jobs = body.results.map(cleanJob).filter(job => !SENIOR_WORDS.test(job.title));
+    const data = { count: body.count, jobs: jobs, cached: false };
     cache.set(cacheKey, { data, expires: Date.now() + CACHE_MINUTES * 60 * 1000 });
     res.json(data);
   } catch (err) {
