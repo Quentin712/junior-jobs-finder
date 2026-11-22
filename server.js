@@ -19,7 +19,7 @@ if (!APP_ID || !APP_KEY) {
 }
 
 app.use((req, res, next) => {
-  res.setHeader('X-Served-By', SERVER_NAME);
+  res.setHeader('X-App-Server', SERVER_NAME);
   next();
 });
 app.use(express.static('public'));
