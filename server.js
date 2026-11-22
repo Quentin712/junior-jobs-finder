@@ -105,4 +105,10 @@ app.get('/api/jobs', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`Server "${SERVER_NAME}" running on port ${PORT}`));
+app.listen(PORT, (err) => {
+  if (err) {
+    console.error('Could not start the server:', err.message);
+    process.exit(1);
+  }
+  console.log(`Server "${SERVER_NAME}" running on port ${PORT}`);
+});
