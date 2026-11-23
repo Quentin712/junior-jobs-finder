@@ -114,7 +114,7 @@ app.get('/api/jobs', async (req, res) => {
   }
 });
 
-app.listen(PORT, (err) => {
+app.listen(PORT, HOST, (err) => {
   if (err) {
     console.error('Could not start the server:', err.message);
     process.exit(1);
