@@ -2,10 +2,12 @@ require('dotenv').config();
 const express = require('express');
 
 const app = express();
+app.disable('x-powered-by');
 const PORT = process.env.PORT || 3000;
 const APP_ID = process.env.ADZUNA_APP_ID;
 const APP_KEY = process.env.ADZUNA_APP_KEY;
 const SERVER_NAME = process.env.SERVER_NAME || 'local';
+const HOST = '127.0.0.1';
 
 const COUNTRIES = ['gb', 'us', 'ca', 'de', 'fr'];
 const LEVELS = ['internship', 'graduate', 'junior', 'entry level'];
@@ -20,6 +22,13 @@ if (!APP_ID || !APP_KEY) {
 
 app.use((req, res, next) => {
   res.setHeader('X-App-Server', SERVER_NAME);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'"
+  );
   next();
 });
 app.use(express.static('public'));
