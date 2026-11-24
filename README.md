@@ -28,8 +28,16 @@ The application runs on two web servers (Web01 and Web02) behind an HAProxy load
 10. [Testing and Verification](#10-testing-and-verification)
 11. [Security Measures](#11-security-measures)
 12. [Error Handling](#12-error-handling)
-13. [Challenges and Solutions](#13-challenges-and-solutions)
-14. [Credits](#14-credits)
+13. [Bonus Tasks Implemented](#13-bonus-tasks-implemented)
+14. [Challenges and Solutions](#14-challenges-and-solutions)
+15. [Credits](#15-credits)
+
+---
+
+## Access and Credentials
+
+- **No login is required.** Junior Jobs Finder has no user accounts or passwords. Open https://www.ntorequentin.tech and use the app right away.
+- **API keys:** the Adzuna `app_id` and `app_key` are provided in the submission comment. For security they are not stored in this repository. They are kept in a `.env` file (excluded by `.gitignore`); see `.env.example` for the format.
 
 ---
 
@@ -79,7 +87,7 @@ It serves a practical need for students and recent graduates, which is also a fo
 
 - **Lb01** runs HAProxy. It redirects HTTP to HTTPS, terminates SSL using a Let's Encrypt certificate, and distributes requests to the two web servers using round robin.
 - **Web01 and Web02** are identical. Each runs the Node.js/Express app as a `systemd` service on `127.0.0.1:3000`, with Nginx on port 80 forwarding requests to it.
-- Each server has its own in-memory cache. This is expected (see [Challenges](#13-challenges-and-solutions)).
+- Each server has its own in-memory cache. This is expected (see [Challenges](#14-challenges-and-solutions)).
 
 ## 4. Project Structure
 
@@ -94,6 +102,11 @@ junior-jobs-finder/
 │   ├── index.html
 │   ├── style.css
 │   └── app.js
+├── haproxy/
+│   └── haproxy.cfg    # Copy of the load balancer config running on Lb01
+├── screenshots/       # Evidence of load balancing (X-App-Server header)
+│   ├── X-App-Server_by_web01.jpg
+│   └── X-App-Server_by_web02.jpg
 └── README.md
 ```
 
@@ -287,34 +300,35 @@ sudo systemctl enable haproxy     # starts at boot, managed with systemctl
 
 ### 8.2 Configuration (`/etc/haproxy/haproxy.cfg`)
 
-> **Replace the block below with the real contents of `/etc/haproxy/haproxy.cfg` from Lb01** (remove any password or auth lines). The structure is the same as shown here.
+This is the exact file running on Lb01. A copy is also saved in this repository at [`haproxy/haproxy.cfg`](haproxy/haproxy.cfg).
 
 ```haproxy
 global
     log /dev/log local0
+    log /dev/log local1 notice
     maxconn 2048
-    user haproxy
-    group haproxy
-    daemon
+    tune.ssl.default-dh-param 2048
 
 defaults
-    log     global
-    mode    http
-    option  httplog
-    timeout connect 5s
-    timeout client  50s
-    timeout server  50s
+    log global
+    mode http
+    option httplog
+    option dontlognull
+    timeout connect 5000
+    timeout client 50000
+    timeout server 50000
 
 frontend http_front
     bind *:80
     redirect scheme https code 301 if !{ ssl_fc }
 
 frontend https_front
-    bind *:443 ssl crt /etc/haproxy/certs/www.ntorequentin.tech.pem
+    bind *:443 ssl crt /etc/ssl/certs/www.ntorequentin.tech.pem
     default_backend web_servers
 
 backend web_servers
     balance roundrobin
+    option httpchk GET /
     server 7375-web-01 13.40.19.34:80 check
     server 7375-web-02 3.10.58.140:80 check
 ```
@@ -323,10 +337,15 @@ How the pieces work together:
 
 | Setting | What it does |
 |---|---|
-| `bind *:80` + `redirect scheme https code 301` | Sends every HTTP visitor to HTTPS. The user does not have to do anything. |
-| `bind *:443 ssl crt ...` | Accepts encrypted traffic and decrypts it using the certificate. |
+| `bind *:80` + `redirect scheme https code 301 if !{ ssl_fc }` | Sends every plain HTTP visitor to HTTPS with a 301. The user does not have to do anything. |
+| `bind *:443 ssl crt ...` | Accepts encrypted traffic and decrypts it using the Let's Encrypt certificate for `www.ntorequentin.tech`. |
+| `tune.ssl.default-dh-param 2048` | Uses a strong 2048-bit key size for the SSL key exchange. |
+| `default_backend web_servers` | Sends all decrypted traffic to the backend pool. |
 | `balance roundrobin` | Sends request 1 to Web01, request 2 to Web02, request 3 to Web01, and so on. |
-| `server ... check` | HAProxy health-checks each server. If one stops answering, it is removed from rotation and all traffic goes to the other. When it returns, it is added back automatically. |
+| `option httpchk GET /` + `check` | HAProxy requests `/` from each server. If one stops answering, it is removed from rotation and all traffic goes to the other. When it returns, it is added back automatically. |
+| `timeout connect/client/server` | Limits (in milliseconds) so slow or dead connections do not hang forever. |
+| `maxconn 2048` | Maximum number of simultaneous connections the load balancer accepts. |
+| `log ... option httplog` | Logs every request, which helps with debugging. |
 
 Validate and apply the configuration:
 
@@ -336,6 +355,8 @@ sudo systemctl restart haproxy
 sudo systemctl status haproxy --no-pager
 sudo ss -tlnp | grep -E ':80 |:443 '          # haproxy should own both ports
 ```
+
+> The certificate file (`.pem`) contains the private key, so it is **not** stored in this repository. Only its path appears in the configuration.
 
 ### 8.3 How the load balancer and web servers interact
 
@@ -428,7 +449,21 @@ Adzuna answers `401` for invalid credentials, and the app converts that into a c
 
 ### 10.7 Application behavior through the load balancer
 
-Checked in a browser at https://www.ntorequentin.tech: search, filtering, all four sort options, paging, the empty "No jobs found" message, the offline error message, salary and currency display, and the responsive phone layout.
+Checked in a browser at https://www.ntorequentin.tech: search, filtering, all four sort options, paging, the empty "No jobs found" message, the offline error message, salary and currency display, and the responsive phone layout. The site also loads over HTTPS on a phone using mobile data.
+
+### 10.8 Screenshots: load balancing in the browser
+
+The browser's Network tab (F12) shows which server answered each request. Both requests below were made to the same address, https://www.ntorequentin.tech, and were served by different machines.
+
+**Answered by Web01** (`X-App-Server: web01`, `X-Served-By: 7375-web-01`):
+
+![Response served by web01](screenshots/X-App-Server_by_web01.jpg)
+
+**Answered by Web02** (`X-App-Server: web02`, `X-Served-By: 7375-web-02`):
+
+![Response served by web02](screenshots/X-App-Server_by_web02.jpg)
+
+The same screenshots also show the security headers (`Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`) and that the `X-Powered-By` header is absent.
 
 ## 11. Security Measures
 
@@ -452,7 +487,13 @@ Checked in a browser at https://www.ntorequentin.tech: search, filtering, all fo
 | Search with no results | "No jobs found..." message |
 | Filters that match nothing | "No jobs match your filters." message |
 
-## 13. Challenges and Solutions
+## 13. Bonus Tasks Implemented
+
+- **Response caching:** the server caches Adzuna responses in memory, which reduces load times and protects the API quota (see 10.5).
+- **Input validation and XSS protection:** country, level, page and keyword are validated, and invalid input returns HTTP 400. User text is never inserted into the page as HTML. Security headers (CSP, nosniff, X-Frame-Options, Referrer-Policy) are set, and the app is only reachable through Nginx (see sections 10.4 and 11).
+- **Security hardening of the deployment:** firewall with only ports 22, 80 and 443 open, HTTPS with an automatic HTTP redirect, and no technology-revealing headers.
+
+## 14. Challenges and Solutions
 
 **1. Verifying that load balancing really works.**
 Claiming it works is not proof. I added an `X-App-Server` header in the app and `X-Served-By` in Nginx, then used a `curl` loop with `sort | uniq -c` and the browser Network tab to show an exact 5/5 split, plus failover tests with each server stopped.
@@ -475,9 +516,9 @@ Adzuna matches keywords anywhere in an ad's text, not only in the title, so a br
 **7. API rate limits.**
 Every new keyword costs one API call. I added caching and strict input validation, and limited paging to five pages, to avoid wasting quota.
 
-## 14. Credits
+## 15. Credits
 
-- **Adzuna** for the job search API and data: https://www.adzuna.com and https://developer.adzuna.com. Job data is provided by Adzuna.
+- **Adzuna** for the job search API and data: https://www.adzuna.com and https://developer.adzuna.com. **Jobs by Adzuna.**
 - **Express** (web framework): https://expressjs.com
 - **dotenv** (loading environment variables): https://github.com/motdotla/dotenv
 - **Node.js**: https://nodejs.org
