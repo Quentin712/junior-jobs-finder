@@ -8,7 +8,7 @@ The application runs on two web servers (Web01 and Web02) behind an HAProxy load
 |---|---|
 | **Live site** | https://www.ntorequentin.tech |
 | **Demo video (max 2 min)** | [VIDEO LINK HERE] |
-| **Repository** | https://github.com/[YOUR-GITHUB-USERNAME]/junior-jobs-finder |
+| **Repository** | https://github.com/Quentin712/junior-jobs-finder |
 | **Login required?** | No. The app has no user accounts, so there are no login credentials. |
 | **API keys** | Provided in the submission comment (never committed to this repository). |
 
@@ -126,7 +126,7 @@ with the parameters `app_id`, `app_key`, `what` (keywords), `results_per_page` a
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/[YOUR-GITHUB-USERNAME]/junior-jobs-finder.git
+git clone https://github.com/Quentin712/junior-jobs-finder.git
 cd junior-jobs-finder
 
 # 2. Install dependencies
@@ -172,7 +172,7 @@ npm -v
 
 ```bash
 cd ~
-git clone https://github.com/[YOUR-GITHUB-USERNAME]/junior-jobs-finder.git
+git clone https://github.com/Quentin712/junior-jobs-finder.git
 cd junior-jobs-finder
 npm ci --omit=dev
 ```
