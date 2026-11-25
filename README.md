@@ -7,7 +7,7 @@ The application runs on two web servers (Web01 and Web02) behind an HAProxy load
 | | |
 |---|---|
 | **Live site** | https://www.ntorequentin.tech |
-| **Demo video (max 2 min)** | [VIDEO LINK HERE] |
+| **Demo video (max 2 min)** | [https://www.youtube.com/watch?v=n5MhPrcnyks] |
 | **Repository** | https://github.com/Quentin712/junior-jobs-finder |
 | **Login required?** | No. The app has no user accounts, so there are no login credentials. |
 | **API keys** | Provided in the submission comment (never committed to this repository). |
