@@ -457,11 +457,11 @@ The browser's Network tab (F12) shows which server answered each request. Both r
 
 **Answered by Web01** (`X-App-Server: web01`, `X-Served-By: 7375-web-01`):
 
-![Response served by web01](screenshots/X-App-Server_by_web01.jpg)
+![Response served by web01](screenshots/web01-headers.jpg)
 
 **Answered by Web02** (`X-App-Server: web02`, `X-Served-By: 7375-web-02`):
 
-![Response served by web02](screenshots/X-App-Server_by_web02.jpg)
+![Response served by web02](screenshots/web02-headers.jpg)
 
 The same screenshots also show the security headers (`Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`) and that the `X-Powered-By` header is absent.
 
